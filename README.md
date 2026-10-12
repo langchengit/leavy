@@ -18,8 +18,8 @@ Built with Expo SDK 57, Expo Router, TypeScript and Supabase.
 You need Node.js 20+ and either a phone with [Expo Go](https://expo.dev/go) or the Android emulator.
 
 ```bash
-git clone https://github.com/langchengit/when-to-leave.git
-cd when-to-leave
+git clone https://github.com/langchengit/leavy.git
+cd leavy
 npm install
 cp .env.example .env.local   # leave it blank for demo mode
 ```
