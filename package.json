@@ -1,6 +1,7 @@
 {
   "name": "leavy",
   "version": "1.0.0",
+  "license": "GPL-3.0-or-later",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

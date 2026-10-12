@@ -73,3 +73,7 @@ Don't commit `.env.local`, and don't edit the generated `android/` and `ios/` fo
 - Alerts are only rescheduled when the app refreshes, so traffic changes while it's closed aren't picked up.
 - Per-event settings apply to one occurrence of a recurring event.
 - Without a start address, trips start from where you are now, not from your previous event.
+
+## License
+
+Leavy is free software, licensed under the [GNU General Public License v3.0 or later](LICENSE). You can use, study, share and change it. If you distribute a modified version, it has to be under the GPL too, with its source code available.
