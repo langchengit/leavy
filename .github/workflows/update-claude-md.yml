@@ -77,7 +77,7 @@ jobs:
                - "How the app works": a step in the data flow that now works differently
                - "Behaviour that must keep working": new behaviour worth protecting, or behaviour
                  that was deliberately changed or removed (update or delete that item)
-               - the checklists under "Is a new feature complete?" and "Always check", if the change
+               - the lists under "What counts as a problem" and "Good suggestions", if the change
                  adds a new kind of thing to check (for example a new settings pattern or test setup)
                - names that changed: functions, constants, files, settings keys, thresholds
             3. Keep everything else exactly as it is, including the review steps and the writing
