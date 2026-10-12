@@ -8,10 +8,19 @@ leave by = event start − grace period − travel time
 
 - **Calendars:** Google Calendar (with Google sign-in), the phone's calendars including iCloud, or a private iCal link.
 - **Travel:** driving with live traffic, transit on real schedules, walking or cycling. Each event can have its own travel mode, grace period, alerts and start address.
+- **Leave time your way:** a countdown ("Leave in 25 min") or the clock time ("Leave at 6:30 PM"). By default it switches to the clock time when departure is an hour or more away.
 - **Accounts:** optional Google or Apple sign-in. Preferences sync to your account.
 - **Demo mode:** sample events, so the app runs with no keys or accounts.
 
 Built with Expo SDK 57, Expo Router, TypeScript and Supabase.
+
+<p align="center">
+  <img src="images/1.jpg" width="200" alt="Sign-in screen with Apple, Google and guest options">
+  <img src="images/2.jpg" width="200" alt="Upcoming: the next trip's countdown and later trips">
+  <img src="images/3.jpg" width="200" alt="Trip timeline: leave, travel, arrive, event starts">
+  <img src="images/6.jpg" width="200" alt="Preferences in dark mode">
+</p>
+<p align="center"><sub>Sign-in · Upcoming · Trip timeline · Preferences (dark mode). Screenshots use demo mode's sample events.</sub></p>
 
 ## Run it locally
 

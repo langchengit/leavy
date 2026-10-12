@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import type { TravelMode } from '../types';
+import type { LeaveTimeStyle, TravelMode } from '../types';
 
 export interface Settings {
   /** Minutes early you want to arrive. */
@@ -11,6 +11,8 @@ export interface Settings {
   /** Extra reminder this many minutes before "leave by" (0 = off). */
   headsUpMin: number;
   lookAheadHours: number;
+  /** "auto" shows a countdown when departure is close and the clock time when it's further off. */
+  leaveTimeStyle: LeaveTimeStyle;
   /** null = all calendars. */
   calendarIds: string[] | null;
   /** Private iCal links (Google "secret address", iCloud share link). Work without a dev build. */
@@ -33,6 +35,7 @@ const DEFAULT_SETTINGS: Settings = {
   notifications: true,
   headsUpMin: 10,
   lookAheadHours: 12,
+  leaveTimeStyle: 'auto',
   calendarIds: null,
   calendarFeeds: [],
   googleCalendar: false,

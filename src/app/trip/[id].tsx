@@ -49,15 +49,18 @@ export default function TripScreen() {
 
   const timing = timingFor(trip, now);
   const c = t.status[timing.status];
-  const { lead, value } = countdownText(trip, timing);
+  const { lead, value, aside } = countdownText(trip, timing, settings.leaveTimeStyle);
   const { event, route } = trip;
 
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: event.title }} />
 
-      <View style={[styles.countdown, { backgroundColor: c.bg }]} accessible accessibilityLabel={`${lead} ${value}`}>
-        <StatusPill status={timing.status} />
+      <View style={[styles.countdown, { backgroundColor: c.bg }]} accessible accessibilityLabel={`${lead} ${value}${aside ? `, ${aside}` : ''}`}>
+        <View style={styles.countdownTop}>
+          <StatusPill status={timing.status} />
+          {aside ? <Text style={[type.caption, { color: c.fg }]}>{aside}</Text> : null}
+        </View>
         <Text style={[type.caption, { color: c.fg, marginTop: space.md }]}>{lead}</Text>
         <Text style={[type.display, { color: c.fg }]} adjustsFontSizeToFit numberOfLines={1}>
           {value}
@@ -199,6 +202,7 @@ const styles = StyleSheet.create({
   content: { padding: space.lg, paddingBottom: space.xxl },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl },
   countdown: { borderRadius: radius.lg, padding: space.lg, paddingBottom: space.xl },
+  countdownTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   reset: { alignItems: 'center', marginTop: space.md },
   step: { flexDirection: 'row', gap: space.md },
   rail: { alignItems: 'center', width: 32 },

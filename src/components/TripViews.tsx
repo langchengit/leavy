@@ -3,22 +3,33 @@ import { Link } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatMinutes, formatTime, MODE_ICON, MODE_NOUN } from '../lib/format';
+import { useSettings } from '../lib/settings';
 import { timingFor, type TripTiming } from '../lib/plan';
 import { radius, space, type, useTheme } from '../theme';
-import type { Trip } from '../types';
+import type { LeaveTimeStyle, Trip } from '../types';
 import { StatusPill } from './StatusPill';
 import { Card, type IconName } from './ui';
 
-/** The one line you glance at: "Leave in 23 min", "Leave now", "6 min late". */
-export function countdownText(trip: Trip, timing: TripTiming): { lead: string; value: string } {
+/** In "auto", departures at least this far off show the clock time instead of a countdown. */
+const CLOCK_AFTER_MIN = 60;
+
+/**
+ * The one line you glance at: "Leave in 23 min" or "Leave at 6:30 PM", then "Now" or "6 min late".
+ * `aside` is the other form, shown small beside it.
+ */
+export function countdownText(trip: Trip, timing: TripTiming, style: LeaveTimeStyle): { lead: string; value: string; aside?: string } {
+  const leaveBy = trip.route ? formatTime(trip.route.leaveBy) : null;
   switch (timing.status) {
     case 'relaxed':
-    case 'soon':
-      return { lead: 'Leave in', value: formatMinutes(Math.ceil(timing.minToLeave)) };
+    case 'soon': {
+      const left = formatMinutes(Math.ceil(timing.minToLeave));
+      const clock = style === 'clock' || (style === 'auto' && timing.minToLeave >= CLOCK_AFTER_MIN);
+      return clock ? { lead: 'Leave at', value: leaveBy!, aside: `in ${left}` } : { lead: 'Leave in', value: left, aside: `by ${leaveBy}` };
+    }
     case 'now':
-      return { lead: 'Head out', value: 'Now' };
+      return { lead: 'Head out', value: 'Now', aside: `by ${leaveBy}` };
     case 'late':
-      return { lead: 'If you leave now', value: `${formatMinutes(Math.ceil(timing.lateByMin))} late` };
+      return { lead: 'If you leave now', value: `${formatMinutes(Math.ceil(timing.lateByMin))} late`, aside: `by ${leaveBy}` };
     default:
       return { lead: 'Leave by', value: '—' };
   }
@@ -33,7 +44,8 @@ export function NextTripCard({ trip, now }: { trip: Trip; now: number }) {
   const t = useTheme();
   const timing = timingFor(trip, now);
   const c = t.status[timing.status];
-  const { lead, value } = countdownText(trip, timing);
+  const { settings } = useSettings();
+  const { lead, value, aside } = countdownText(trip, timing, settings.leaveTimeStyle);
   const { event, route } = trip;
 
   const a11y = route
@@ -48,9 +60,7 @@ export function NextTripCard({ trip, now }: { trip: Trip; now: number }) {
             <View style={[styles.heroTop, { backgroundColor: c.bg }]}>
               <View style={styles.rowBetween}>
                 <StatusPill status={timing.status} />
-                {route ? (
-                  <Text style={[type.caption, { color: c.fg }]}>by {formatTime(route.leaveBy)}</Text>
-                ) : null}
+                {aside ? <Text style={[type.caption, { color: c.fg }]}>{aside}</Text> : null}
               </View>
               <Text style={[type.caption, { color: c.fg, marginTop: space.md }]}>{lead}</Text>
               <Text style={[type.display, { color: c.fg }]} adjustsFontSizeToFit numberOfLines={1}>

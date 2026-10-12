@@ -1,5 +1,8 @@
 export type TravelMode = 'drive' | 'transit' | 'walk' | 'bike';
 
+/** How the main leave time reads: "Leave in 25 min", "Leave at 6:30 PM", or switch by distance. */
+export type LeaveTimeStyle = 'auto' | 'countdown' | 'clock';
+
 export type TripStatus = 'relaxed' | 'soon' | 'now' | 'late' | 'unknown';
 
 export interface CalEvent {

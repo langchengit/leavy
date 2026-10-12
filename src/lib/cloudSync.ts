@@ -13,6 +13,7 @@ const SYNCED = [
   'notifications',
   'headsUpMin',
   'lookAheadHours',
+  'leaveTimeStyle',
   'modeOverrides',
   'graceOverrides',
   'notifyOverrides',
