@@ -1,13 +1,15 @@
 name: Update CLAUDE.md
 
-# After every merge to master, Claude compares the change with CLAUDE.md and, if the guide is now
-# out of date, opens a pull request that updates it. Nothing is pushed to master directly.
-# Changes to CLAUDE.md alone don't trigger this, so merging the update doesn't start it again.
+# After every merge to master, once CI passes, Claude compares the change with CLAUDE.md and, if the
+# guide is now out of date, opens a pull request that updates it. Nothing is pushed to master
+# directly. (The Claude action doesn't support the push event, so this follows the CI run instead.)
+# Merges that only change CLAUDE.md are skipped, so merging the update doesn't start it again.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [master]
-    paths-ignore:
-      - CLAUDE.md
+  workflow_dispatch:
 
 concurrency:
   group: update-claude-md
@@ -15,6 +17,9 @@ concurrency:
 
 jobs:
   update:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -24,10 +29,24 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
+
+      - name: Find what changed
+        id: change
+        run: |
+          sha=$(git rev-parse HEAD)
+          files=$(git diff --name-only "$sha~1" "$sha")
+          echo "Changed files:"; echo "$files"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          if [ "$files" = "CLAUDE.md" ] || [ -z "$files" ]; then
+            echo "Only CLAUDE.md changed. Nothing to update."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
 
       # If an earlier update is still waiting to be merged, build on it instead of starting over.
       - name: Start from the pending update, if there is one
+        if: steps.change.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -39,14 +58,15 @@ jobs:
           fi
 
       - name: Ask Claude to update CLAUDE.md
+        if: steps.change.outputs.skip != 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             New code was just merged into master in ${{ github.repository }}.
-            The change is `git diff ${{ github.event.before }} ${{ github.sha }}`
-            (if that range doesn't exist, use `git diff HEAD~1 HEAD`). Read the commit messages with
-            `git log ${{ github.event.before }}..${{ github.sha }}` too.
+            The change is `git diff ${{ steps.change.outputs.sha }}~1 ${{ steps.change.outputs.sha }}`.
+            If it's a merge commit, read the merged commits' messages with
+            `git log ${{ steps.change.outputs.sha }}~1..${{ steps.change.outputs.sha }}`.
 
             CLAUDE.md is the guide Claude uses to review pull requests in this repo. Your job is to
             keep it accurate after this change:
@@ -72,9 +92,10 @@ jobs:
             --allowedTools "Read,Edit,Glob,Grep,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
 
       - name: Open a pull request if CLAUDE.md changed
+        if: steps.change.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.sha }}
+          SHA: ${{ steps.change.outputs.sha }}
         run: |
           if git diff --quiet -- CLAUDE.md; then
             echo "CLAUDE.md is still accurate. Nothing to do."
