@@ -72,7 +72,7 @@ Contributions of any size are welcome, from fixing a typo to adding a feature. Y
 1. Create a branch off `master`.
 2. Screens go in `src/app/` (Expo Router). Components go in `src/components/`, and logic in `src/lib/`.
 3. Add packages with `npx expo install <package>` so versions match the SDK.
-4. Before opening a pull request, run `npm run lint` and `npm run typecheck`.
+4. Before opening a pull request, run `npm test`, `npm run lint`, and `npm run typecheck`.
 5. In the pull request, say what changed and how you tested it (Expo Go, dev build, emulator or device).
 
 Every pull request runs lint and typecheck automatically. Claude also reviews pull requests from branches in this repo; for a pull request from a fork, a maintainer can comment `@claude review this PR`.
