@@ -1,0 +1,17 @@
+name: Token check (temporary)
+
+# Checks the shape of the CLAUDE_CODE_OAUTH_TOKEN secret without printing it. Delete after use.
+on: workflow_dispatch
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          echo "length: ${#TOKEN}"
+          case "$TOKEN" in sk-ant-oat*) echo "prefix: sk-ant-oat (OK)";; sk-ant-api*) echo "prefix: sk-ant-api (this is an API key, not an OAuth token)";; *) echo "prefix: unexpected";; esac
+          if printf '%s' "$TOKEN" | grep -q '[[:space:]]'; then echo "whitespace: YES (spaces or line breaks inside)"; else echo "whitespace: none"; fi
+          if [ "$TOKEN" != "$(printf '%s' "$TOKEN" | tr -d '\r\n ')" ]; then echo "stray characters: yes"; fi
