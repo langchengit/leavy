@@ -8,6 +8,7 @@ Leavy reads the user's calendar, gets travel times from the Google Routes API, a
 
 - `src/app/`: Expo Router screens. `(tabs)/` holds Upcoming (`index.tsx`), Connections and Preferences; `trip/[id].tsx` is the trip detail screen; `sign-in.tsx` is the welcome screen.
 - `src/lib/`: logic. `trips.tsx` builds trips from events, `plan.ts` decides each trip's status, `routes.ts` calls the Routes API, `settings.tsx` stores preferences, `cloudSync.ts` syncs them to Supabase, `auth.tsx` handles sign-in.
+- `src/lib/*.test.ts`: Jest unit tests (`format.test.ts`, `plan.test.ts`), run with `npm test` (`jest-expo` preset). Keep them next to the code they test.
 - `src/components/`: shared UI. Use the primitives in `ui.tsx` (Card, Button, Chip, SwitchRow, LinkButton, SectionHeader) and the tokens in `src/theme.ts` instead of new colours or sizes.
 
 ## How the app works

@@ -45,17 +45,29 @@ jobs:
           fi
 
       # If an earlier update is still waiting to be merged, build on it instead of starting over.
+      # If CLAUDE.md on master changed since that update began, start from master instead and
+      # review everything merged since then, so neither the update nor the master edit is lost.
       - name: Start from the pending update, if there is one
+        id: start
         if: steps.change.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.change.outputs.sha }}
         run: |
+          from="$SHA~1"
           open=$(gh pr list --head claude/update-claude-md --state open --json number --jq '.[].number')
           if [ -n "$open" ] && git fetch --quiet origin claude/update-claude-md 2>/dev/null; then
-            git checkout FETCH_HEAD -- CLAUDE.md
-            git reset --quiet -- CLAUDE.md
-            echo "Starting from the CLAUDE.md in the open update."
+            base=$(git merge-base FETCH_HEAD HEAD)
+            if git diff --quiet "$base" HEAD -- CLAUDE.md; then
+              git checkout FETCH_HEAD -- CLAUDE.md
+              git reset --quiet -- CLAUDE.md
+              echo "Starting from the CLAUDE.md in the open update."
+            else
+              from="$base"
+              echo "CLAUDE.md changed on master since the open update began; starting from master and reviewing everything since $base."
+            fi
           fi
+          echo "from=$from" >> "$GITHUB_OUTPUT"
 
       - name: Ask Claude to update CLAUDE.md
         if: steps.change.outputs.skip != 'true'
@@ -64,9 +76,9 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             New code was just merged into master in ${{ github.repository }}.
-            The change is `git diff ${{ steps.change.outputs.sha }}~1 ${{ steps.change.outputs.sha }}`.
-            If it's a merge commit, read the merged commits' messages with
-            `git log ${{ steps.change.outputs.sha }}~1..${{ steps.change.outputs.sha }}`.
+            The change is `git diff ${{ steps.start.outputs.from }} ${{ steps.change.outputs.sha }}`.
+            Read the commit messages with
+            `git log ${{ steps.start.outputs.from }}..${{ steps.change.outputs.sha }}`.
 
             CLAUDE.md is the guide Claude uses to review pull requests in this repo. Your job is to
             keep it accurate after this change:
