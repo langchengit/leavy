@@ -1,0 +1,108 @@
+name: Update CLAUDE.md
+
+# After every merge to master, Claude compares the change with CLAUDE.md and, if the guide is now
+# out of date, opens a pull request that updates it. Nothing is pushed to master directly.
+# Changes to CLAUDE.md alone don't trigger this, so merging the update doesn't start it again.
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - CLAUDE.md
+
+concurrency:
+  group: update-claude-md
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # If an earlier update is still waiting to be merged, build on it instead of starting over.
+      - name: Start from the pending update, if there is one
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --head claude/update-claude-md --state open --json number --jq '.[].number')
+          if [ -n "$open" ] && git fetch --quiet origin claude/update-claude-md 2>/dev/null; then
+            git checkout FETCH_HEAD -- CLAUDE.md
+            git reset --quiet -- CLAUDE.md
+            echo "Starting from the CLAUDE.md in the open update."
+          fi
+
+      - name: Ask Claude to update CLAUDE.md
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            New code was just merged into master in ${{ github.repository }}.
+            The change is `git diff ${{ github.event.before }} ${{ github.sha }}`
+            (if that range doesn't exist, use `git diff HEAD~1 HEAD`). Read the commit messages with
+            `git log ${{ github.event.before }}..${{ github.sha }}` too.
+
+            CLAUDE.md is the guide Claude uses to review pull requests in this repo. Your job is to
+            keep it accurate after this change:
+
+            1. Read CLAUDE.md and the diff. Open the changed files where you need more context.
+            2. Update CLAUDE.md only where the change made it wrong or incomplete, for example:
+               - "Layout": files or folders added, moved, renamed or removed
+               - "How the app works": a step in the data flow that now works differently
+               - "Behaviour that must keep working": new behaviour worth protecting, or behaviour
+                 that was deliberately changed or removed (update or delete that item)
+               - the checklists under "Is a new feature complete?" and "Always check", if the change
+                 adds a new kind of thing to check (for example a new settings pattern or test setup)
+               - names that changed: functions, constants, files, settings keys, thresholds
+            3. Keep everything else exactly as it is, including the review steps and the writing
+               style: short, plain sentences that name the actual files and functions.
+            4. Only write what the code shows. Don't guess, and don't describe plans.
+            5. If CLAUDE.md is still accurate, don't edit it.
+
+            Edit only CLAUDE.md. Don't change any other file, and don't commit or push; a later step
+            opens the pull request.
+          claude_args: |
+            --max-turns 25
+            --allowedTools "Read,Edit,Glob,Grep,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
+
+      - name: Open a pull request if CLAUDE.md changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          if git diff --quiet -- CLAUDE.md; then
+            echo "CLAUDE.md is still accurate. Nothing to do."
+            exit 0
+          fi
+          branch=claude/update-claude-md
+          open=$(gh pr list --head "$branch" --state open --json number --jq '.[].number')
+          if [ -n "$open" ] && git fetch --quiet origin "$branch" 2>/dev/null && git diff --quiet FETCH_HEAD -- CLAUDE.md; then
+            echo "The open update already has this CLAUDE.md. Nothing to do."
+            exit 0
+          fi
+          other=$(git status --porcelain | grep -v ' CLAUDE.md$' || true)
+          if [ -n "$other" ]; then
+            echo "::warning::Ignoring changes to other files:"
+            echo "$other"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$branch"
+          git add CLAUDE.md
+          git commit -m "Update CLAUDE.md for ${SHA::7}"
+          git push --force origin "$branch"
+
+          if [ -z "$open" ]; then
+            gh pr create --base master --head "$branch" \
+              --title "Update CLAUDE.md to match recent changes" \
+              --body "Claude updated CLAUDE.md after ${SHA::7} was merged, so pull request reviews follow the current code. Check the diff and merge if it's accurate. If more merges happen before this one, this pull request is updated with the latest version."
+          else
+            echo "Updated the existing pull request."
+          fi
