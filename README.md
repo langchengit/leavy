@@ -75,6 +75,8 @@ Contributions of any size are welcome, from fixing a typo to adding a feature. Y
 4. Before opening a pull request, run `npm run lint` and `npm run typecheck`.
 5. In the pull request, say what changed and how you tested it (Expo Go, dev build, emulator or device).
 
+Every pull request runs lint and typecheck automatically. Claude also reviews pull requests from branches in this repo; for a pull request from a fork, a maintainer can comment `@claude review this PR`.
+
 Don't commit `.env.local`, and don't edit the generated `android/` and `ios/` folders. Native settings belong in `app.json` and `app.config.ts`.
 
 ## Known limits
