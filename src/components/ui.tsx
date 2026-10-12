@@ -59,7 +59,17 @@ export function Button({
   );
 }
 
-export function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+export function Chip({
+  label,
+  selected,
+  onPress,
+  accessibilityLabel,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  accessibilityLabel?: string;
+}) {
   const t = useTheme();
   return (
     <Pressable
@@ -68,6 +78,7 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
         onPress();
       }}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected }}
       hitSlop={4}
       style={({ pressed }) => [
@@ -76,7 +87,13 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
         pressed && { opacity: 0.75 },
       ]}
     >
-      <Text style={[type.caption, { color: selected ? t.primary : t.text, fontVariant: ['tabular-nums'] }]}>{label}</Text>
+      <Text
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        style={[type.caption, styles.chipText, { color: selected ? t.primary : t.text, fontVariant: ['tabular-nums'] }]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -185,11 +202,15 @@ const styles = StyleSheet.create({
   chip: {
     minHeight: 40,
     minWidth: 52,
+    maxWidth: '100%',
     paddingHorizontal: space.md,
     borderRadius: radius.pill,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  chipText: {
+    maxWidth: '100%',
   },
   banner: { flexDirection: 'row', gap: space.md, padding: space.lg, borderRadius: radius.md, marginBottom: space.md },
 });
