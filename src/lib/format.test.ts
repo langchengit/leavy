@@ -1,5 +1,9 @@
 import { formatDistance, formatMinutes } from './format';
 
+jest.mock('expo-localization', () => ({
+  getLocales: () => [{ regionCode: 'CN' }],
+}));
+
 describe('formatMinutes', () => {
   it('formats minutes under an hour', () => {
     expect(formatMinutes(20)).toBe('20 min');
@@ -27,11 +31,24 @@ describe('formatDistance', () => {
     expect(formatDistance(undefined)).toBeNull();
   });
 
-  it('formats distances under 1000 m in meters', () => {
-    expect(formatDistance(950)).toBe('950 m');
+  it('formats distances under 1000 m in meters for metric regions', () => {
+    expect(formatDistance(950, 'CN')).toBe('950 m');
   });
 
-  it('formats distances of 1000 m or more in kilometers with one decimal', () => {
+  it('formats distances of 1000 m or more in kilometers with one decimal for metric regions', () => {
+    expect(formatDistance(9100, 'CN')).toBe('9.1 km');
+  });
+
+  it.each(['US', 'GB'])('uses feet below 0.1 miles in %s', (region) => {
+    expect(formatDistance(150, region)).toBe('492 ft');
+  });
+
+  it.each(['US', 'GB'])('uses miles at and above 0.1 miles in %s', (region) => {
+    expect(formatDistance(161, region)).toBe('0.1 mi');
+    expect(formatDistance(9100, region)).toBe('5.7 mi');
+  });
+
+  it('keeps an unspecified region metric', () => {
     expect(formatDistance(9100)).toBe('9.1 km');
   });
 });
