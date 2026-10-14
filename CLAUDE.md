@@ -32,6 +32,7 @@ Any PR that touches the files involved must leave all of these working. Flag a P
 - The app runs in **Expo Go** on iPhone and Android, and on web. Sign-in buttons are hidden there, not broken.
 - **Leave time** = event start − grace period − travel time. For transit, the leave time is the departure of the first ride minus the walk to the stop.
 - **Status thresholds:** On track above `SOON_MIN` (15 min) before leaving; Leave soon from 15 to 0 min; Leave now once the leave time has passed but you'd still arrive on time; Running late when you'd arrive 1 min or more after the start. In Auto mode, the clock time shows from `CLOCK_AFTER_MIN` (60 min) out.
+- **Distances** (`formatDistance()` in `format.ts`) show feet or miles when the phone's region is US or GB (feet below 0.1 mi), and metres or km everywhere else, including when the region is unknown.
 - **Per-event overrides** (mode, grace, alerts, start address) apply only to their event, show "Just this event" on the trip screen, and can be reset to the default.
 - **Settings** persist across app restarts and, when signed in, sync to Supabase without overwriting the account's saved values on first sign-in.
 - **Alerts** are only scheduled for future leave times, and never twice for the same trip.
