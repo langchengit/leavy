@@ -1,4 +1,7 @@
 import type { TravelMode } from '../types';
+import { getLocales } from 'expo-localization';
+
+const IMPERIAL_REGIONS = new Set(['US', 'GB']);
 
 export function formatTime(d: Date): string {
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -17,8 +20,12 @@ export function formatMinutes(totalMin: number): string {
   return rest ? `${h} h ${rest} min` : `${h} h`;
 }
 
-export function formatDistance(meters?: number): string | null {
+export function formatDistance(meters?: number, regionCode = getLocales()[0]?.regionCode): string | null {
   if (meters == null) return null;
+  if (regionCode && IMPERIAL_REGIONS.has(regionCode)) {
+    const miles = meters / 1609.344;
+    return miles < 0.1 ? `${Math.round(meters * 3.28084)} ft` : `${miles.toFixed(1)} mi`;
+  }
   return meters < 1000 ? `${Math.round(meters)} m` : `${(meters / 1000).toFixed(1)} km`;
 }
 

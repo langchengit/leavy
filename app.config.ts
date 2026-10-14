@@ -11,6 +11,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...(config as ExpoConfig),
     plugins: [
       ...(config.plugins ?? []),
+      'expo-localization',
       ...(iosUrlScheme ? [['@react-native-google-signin/google-signin', { iosUrlScheme }] as [string, object]] : []),
     ],
   };
